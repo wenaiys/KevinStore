@@ -61,6 +61,7 @@
     "time.h": "c",
     "socket.h": "c",
     "stddef.h": "c",
-    "type_traits": "c"
+    "type_traits": "c",
+    "getopt.h": "c"
   }
 }

@@ -39,14 +39,15 @@ struct conn_item {
 #define NETWORK_NTYCO		1
 #define NETWORK_IOURING		2
 
-#define ENABLE_NETWORK_SELECT	NETWORK_EPOLL
+#define ENABLE_NETWORK_SELECT	NETWORK_NTYCO
 
 
 #define ENABLE_ARRAY_ENGINE  1
+#define ENABLE_RBTREE_ENGINE 1
 int kvstore_request(struct conn_item* item);
 
 int reactor_entry();
-
+int ntyco_entry();
 void *kv_malloc(size_t size);
 void kv_free(void *ptr);
 
@@ -78,7 +79,21 @@ int kvs_array_del(array_t *array , char *key);
 int kvs_array_count(array_t *array);
 
 #endif
+#if ENABLE_RBTREE_ENGINE
+typedef struct _rbtree rbtree_t;
+extern rbtree_t Tree;
+int kvs_rbtree_create(rbtree_t *tree);
+void kvs_rbtree_destory(rbtree_t *tree);
 
+int kvs_rbtree_set(rbtree_t *tree , char *key , char *value);
+char * kvs_rbtree_get(rbtree_t *tree , char *key);
+int kvs_rbtree_mod(rbtree_t *tree , char *key , char *value);
+int kvs_rbtree_del(rbtree_t *tree , char *key);
+
+int kvs_rbtree_count(rbtree_t *tree);
+
+
+#endif
 
 
 #endif

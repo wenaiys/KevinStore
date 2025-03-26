@@ -3,7 +3,7 @@
 
 #include "kvstore.h"
 
-
+#define TEST_QPS 0
 
 
 
@@ -79,7 +79,7 @@ int recv_cb(int fd) { // fd --> EPOLLIN
 	}
 	connlist[fd].rlen = count;
 
-#if 0 //echo: need to send
+#if TEST_QPS //echo: need to send
 	memcpy(connlist[fd].wbuffer, connlist[fd].rbuffer, connlist[fd].rlen);
 	connlist[fd].wlen = connlist[fd].rlen;
 	connlist[fd].rlen = 0;
@@ -129,7 +129,7 @@ int init_server(unsigned short port) {
 
 	return sockfd;
 }
-
+#if !TEST_QPS
 // tcp 
 int reactor_entry() {
 
@@ -172,6 +172,46 @@ int reactor_entry() {
 
 
 }
+#else
+int main(){
+	unsigned short port = 2048;
+	
+	epfd = epoll_create(1); // int size
+
+	int sockfd =  init_server(port);
+	connlist[sockfd].fd = sockfd;
+	connlist[sockfd].recv_t.accept_callback = accept_cb;
+	set_event(sockfd, EPOLLIN, 1);
+	
+
+
+	struct epoll_event events[1024] = {0};
+	
+	while (1) { // mainloop();
+
+		int nready = epoll_wait(epfd, events, 1024, -1); // 
+
+		int i = 0;
+		for (i = 0;i < nready;i ++) {
+
+			int connfd = events[i].data.fd;
+			if (events[i].events & EPOLLIN) { //
+
+				int count = connlist[connfd].recv_t.recv_callback(connfd);
+				//printf("recv count: %d <-- buffer: %s\n", count, connlist[connfd].rbuffer);
+
+			} else if (events[i].events & EPOLLOUT) { 
+				// printf("send --> buffer: %s\n",  connlist[connfd].wbuffer);
+				
+				int count = connlist[connfd].send_callback(connfd);
+			}
+
+		}
+
+	}
+}
+
+#endif
 
 
 
